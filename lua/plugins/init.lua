@@ -11,7 +11,14 @@ return {
   {
     "olimorris/onedarkpro.nvim",
     priority = 1000,
-    opts = {},
+    opts = {
+      colors = {
+        onedark = { bg = "#262626" },
+      },
+      options = {
+        transparency = true,
+      },
+    },
     config = function(_, opts)
       require("onedarkpro").setup(opts)
       require("onedarkpro").load()
