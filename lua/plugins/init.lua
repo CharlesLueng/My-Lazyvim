@@ -30,11 +30,52 @@ return {
     "neovim/nvim-lspconfig",
     ---@class PluginLspOpts
     opts = {
-      ---@type lspconfig.options
+      ---type lspconfig.options
       servers = {
-        omnisharp = {
-          cmd = { "dotnet", "/home/charles/.local/share/nvim/mason/packages/omnisharp/libexec/OmniSharp.dll" },
-        },
+        omnisharp = false,
+        -- omnisharp = {
+        --   cmd = { "dotnet", "/home/charles/.local/share/nvim/mason/packages/omnisharp/libexec/OmniSharp.dll" },
+        --   settings = {
+        --     FormattingOptions = {
+        --       -- Enables support for reading code style, naming convention and analyzer
+        --       -- settings from .editorconfig.
+        --       EnableEditorConfigSupport = false,
+        --       -- Specifies whether 'using' directives should be grouped and sorted during
+        --       -- document formatting.
+        --       OrganizeImports = nil,
+        --     },
+        --     MsBuild = {
+        --       -- If true, MSBuild project system will only load projects for files that
+        --       -- were opened in the editor. This setting is useful for big C# codebases
+        --       -- and allows for faster initialization of code navigation features only
+        --       -- for projects that are relevant to code that is being edited. With this
+        --       -- setting enabled OmniSharp may load fewer projects and may thus display
+        --       -- incomplete reference lists for symbols.
+        --       -- LoadProjectsOnDemand = nil,
+        --       LoadProjectsOnDemand = true,
+        --     },
+        --     RoslynExtensionsOptions = {
+        --       -- Enables support for roslyn analyzers, code fixes and rulesets.
+        --       EnableAnalyzersSupport = nil,
+        --       -- Enables support for showing unimported types and unimported extension
+        --       -- methods in completion lists. When committed, the appropriate using
+        --       -- directive will be added at the top of the current file. This option can
+        --       -- have a negative impact on initial completion responsiveness,
+        --       -- particularly for the first few completion sessions after opening a
+        --       -- solution.
+        --       EnableImportCompletion = nil,
+        --       -- Only run analyzers against open files when 'enableRoslynAnalyzers' is
+        --       -- true
+        --       -- AnalyzeOpenDocumentsOnly = nil,
+        --       AnalyzeOpenDocumentsOnly = true,
+        --     },
+        --     Sdk = {
+        --       -- Specifies whether to include preview versions of the .NET SDK when
+        --       -- determining which version to use for project loading.
+        --       IncludePrereleases = true,
+        --     },
+        --   },
+        -- },
       },
     },
   },
@@ -92,49 +133,215 @@ return {
     "max397574/better-escape.nvim",
     opts = {},
   },
+  {
+    "mfussenegger/nvim-dap",
+    config = function()
+      -- load mason-nvim-dap here, after all adapters have been setup
+      if LazyVim.has("mason-nvim-dap.nvim") then
+        require("mason-nvim-dap").setup(LazyVim.opts("mason-nvim-dap.nvim"))
+      end
+
+      vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
+
+      for name, sign in pairs(LazyVim.config.icons.dap) do
+        sign = type(sign) == "table" and sign or { sign }
+        vim.fn.sign_define(
+          "Dap" .. name,
+          { text = sign[1], texthl = sign[2] or "DiagnosticInfo", linehl = sign[3], numhl = sign[3] }
+        )
+      end
+
+      -- setup dap config by VsCode launch.json file
+      local vscode = require("dap.ext.vscode")
+      local json = require("plenary.json")
+      vscode.json_decode = function(str)
+        return vim.json.decode(json.json_strip_comments(str))
+      end
+
+      local dap = require("dap")
+
+      dap.configurations.cs = {
+        -- {
+        --     type = 'coreclr',
+        --     name = 'launch - netcoredbg',
+        --     request = 'launch',
+        --     program = function()
+        --         return vim.fn.input('Path to dll: ', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+        --     end,
+        -- },
+        {
+          type = "netcoredbg",
+          name = "Launch file",
+          request = "launch",
+          ---@diagnostic disable-next-line: redundant-parameter
+          program = function()
+            return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/", "file")
+          end,
+          cwd = "${workspaceFolder}",
+        },
+        {
+          type = "netcoredbg",
+          name = "Attach",
+          request = "attach",
+          processId = function()
+            local pgrep = vim.fn.input("Pid: ")
+            return tonumber(pgrep)
+          end,
+          cwd = "${workspaceFolder}",
+        },
+      }
+    end,
+  },
   -- {
-  --   "mfussenegger/nvim-dap",
-  --   optional = true,
-  --   opts = function()
-  --     local dap = require("dap")
-  --     if not dap.adapters["netcoredbg"] then
-  --       require("dap").adapters["netcoredbg"] = {
-  --         type = "executable",
-  --         command = vim.fn.exepath("netcoredbg"),
-  --         args = { "--interpreter=vscode" },
-  --         options = {
-  --           detached = false,
-  --         },
-  --       }
-  --     end
-  --     for _, lang in ipairs({ "cs", "fsharp", "vb" }) do
-  --       if not dap.configurations[lang] then
-  --         dap.configurations[lang] = {
-  --           {
-  --             type = "netcoredbg",
-  --             name = "Launch file",
-  --             request = "launch",
-  --             ---@diagnostic disable-next-line: redundant-parameter
-  --             program = function()
-  --               return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/", "file")
-  --             end,
-  --             cwd = "${workspaceFolder}",
-  --           },
-  --           {
-  --             type = "netcoredbg",
-  --             name = "Launch - netcoredbg",
-  --             request = "attach",
-  --             pid = function()
-  --               local pgrep = vim.fn.system("pgrep -f 'dotnet run --project Beehive'")
-  --               return tonumber(pgrep)
-  --             end,
-  --             preLaunchTask = function()
-  --               Term = vim.fn.termopen("dotnet run --project Beehive")
-  --             end,
-  --           },
-  --         }
-  --       end
-  --     end
-  --   end,
+  --   "seblj/roslyn.nvim",
+  --   ft = "cs",
+  --   opts = {
+  --     args = {
+  --       "--logLevel=Information",
+  --       "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+  --       "--razorSourceGenerator=" .. vim.fs.joinpath(
+  --         vim.fn.stdpath("data") --[[@as string]],
+  --         "mason",
+  --         "packages",
+  --         "roslyn",
+  --         "libexec",
+  --         "Microsoft.CodeAnalysis.Razor.Compiler.dll"
+  --       ),
+  --       "--razorDesignTimePath=" .. vim.fs.joinpath(
+  --         vim.fn.stdpath("data") --[[@as string]],
+  --         "mason",
+  --         "packages",
+  --         "rzls",
+  --         "libexec",
+  --         "Targets",
+  --         "Microsoft.NET.Sdk.Razor.DesignTime.targets"
+  --       ),
+  --     },
+  --     config = {
+  --       on_attach = require("lspattach"),
+  --       -- capabilities = capabilities,
+  --       handlers = require("rzls.roslyn_handlers"),
+  --     },
+  --     -- your configuration comes here; leave empty for default settings
+  --   },
   -- },
+  -- {
+  --   "tris203/rzls.nvim",
+  --   opts = {},
+  -- },
+  {
+    "williamboman/mason.nvim",
+    opts = {
+      registries = {
+        "github:mason-org/mason-registry",
+        "github:crashdummyy/mason-registry",
+      },
+    },
+  },
+  {
+    "seblj/roslyn.nvim",
+    -- ft = { "cs", "cshtml", "html" },
+    dependencies = {
+      {
+        "tris203/rzls.nvim",
+        config = function()
+          local capabilities = require("blink.cmp").get_lsp_capabilities(nil, true)
+          require("rzls").setup({
+            on_attach = function() end,
+            capabilities = capabilities,
+          })
+        end,
+      },
+    },
+    config = function()
+      local capabilities = require("blink.cmp").get_lsp_capabilities(nil, true)
+      -- local capabilities = vim.lsp.protocol.make_client_capabilities()
+      -- capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+      -- capabilities = require("blink.cmp").get_lsp_capabilities(capabilities)
+      -- capabilities = vim.tbl_deep_extend("force", capabilities, {
+      --   textDocument = {
+      --     diagnostic = {
+      --       dynamicRegistration = true,
+      --     },
+      --   },
+      -- })
+      require("roslyn").setup({
+        filewatching = false,
+        args = {
+          "--logLevel=Information",
+          "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+          "--razorSourceGenerator=" .. vim.fs.joinpath(
+            vim.fn.stdpath("data") --[[@as string]],
+            "mason",
+            "packages",
+            "roslyn",
+            "libexec",
+            "Microsoft.CodeAnalysis.Razor.Compiler.dll"
+          ),
+          "--razorDesignTimePath=" .. vim.fs.joinpath(
+            vim.fn.stdpath("data") --[[@as string]],
+            "mason",
+            "packages",
+            "rzls",
+            "libexec",
+            "Targets",
+            "Microsoft.NET.Sdk.Razor.DesignTime.targets"
+          ),
+        },
+        config = {
+          cmd = {},
+          -- on_attach = require("lspattach"),
+          capabilities = capabilities,
+          handlers = require("rzls.roslyn_handlers"),
+          settings = {
+            ["csharp|inlay_hints"] = {
+              csharp_enable_inlay_hints_for_implicit_object_creation = true,
+              csharp_enable_inlay_hints_for_implicit_variable_types = true,
+
+              csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+              csharp_enable_inlay_hints_for_types = true,
+              dotnet_enable_inlay_hints_for_indexer_parameters = true,
+              dotnet_enable_inlay_hints_for_literal_parameters = true,
+              dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+              dotnet_enable_inlay_hints_for_other_parameters = true,
+              dotnet_enable_inlay_hints_for_parameters = true,
+              dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+              dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+              dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+            },
+            ["csharp|code_lens"] = {
+              dotnet_enable_references_code_lens = true,
+            },
+          },
+
+          -- capabilities = capabilities,
+          -- handlers = require("rzls.roslyn_handlers"),
+          -- settings = {
+          --   ["csharp|background_analysis"] = {
+          --     -- background_analysis = {
+          --     --     dotnet_analyzer_diagnostics_scope = "openFiles",
+          --     --     dotnet_compiler_diagnostics_scope = "fullSolution",
+          --     -- },
+          --     dotnet_analyzer_diagnostics_scope = "fullSolution",
+          --     dotnet_compiler_diagnostics_scope = "fullSolution",
+          --   },
+          --   ["csharp|inlay_hints"] = {
+          --     csharp_enable_inlay_hints_for_implicit_object_creation = true,
+          --     csharp_enable_inlay_hints_for_implicit_variable_types = true,
+          --     csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+          --     csharp_enable_inlay_hints_for_types = true,
+          --     dotnet_enable_inlay_hints_for_indexer_parameters = true,
+          --     dotnet_enable_inlay_hints_for_literal_parameters = true,
+          --     dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+          --     dotnet_enable_inlay_hints_for_other_parameters = true,
+          --     dotnet_enable_inlay_hints_for_parameters = true,
+          --     dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+          --     dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+          --     dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+          --   },
+          -- },
+        },
+      })
+    end,
+  },
 }

@@ -4,6 +4,11 @@
 
 vim.g.snacks_animate = false
 
+vim.g.root_spec = { "lsp", "cwd", { ".git", "lua" } }
+
+-- Disable Auto Format
+vim.g.autoformat = false
+
 -- Terminal
 if vim.loop.os_uname().sysname == "Windows_NT" then
   -- -- 命令行重置为powershell
