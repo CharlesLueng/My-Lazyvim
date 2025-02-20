@@ -26,10 +26,36 @@ return {
       -- vim.cmd("colorschema onedark")
     end,
   },
+  -- {
+  --   "williamboman/mason-lspconfig.nvim",
+  --   opts = {},
+  --   config = function()
+  --     local lspconfig = require('lspconfig')
+  --     require("mason-lspconfig").setup_handlers({
+  --       function(server_name)
+  --         print(server_name)
+  --         print(require("neoconf").get(server_name .. ".disable"))
+  --         -- local server_config = {}
+  --         if require("neoconf").get(server_name .. ".disable") then
+  --           return
+  --         end
+  --         -- if server_name == "volar" then
+  --         --   server_config.filetypes = { "vue", "typescript", "javascript" }
+  --         -- end
+  --         -- lspconfig[server_name].setup(server_config)
+  --       end,
+  --     })
+  --   end,
+  -- },
   {
     "neovim/nvim-lspconfig",
     ---@class PluginLspOpts
     opts = {
+      -- options for vim.diagnostic.config()
+      ---@type vim.diagnostic.Opts
+      diagnostics = {
+        virtual_text = false,
+      },
       ---type lspconfig.options
       servers = {
         omnisharp = false,
@@ -129,10 +155,25 @@ return {
       },
     },
   },
-  {
-    "max397574/better-escape.nvim",
-    opts = {},
-  },
+  -- {
+  --   "max397574/better-escape.nvim",
+  --   opts = {
+  --     mappings = {
+  --       i = {
+  --         j = {
+  --           k = function()
+  --             if vim.bo.filetype == "yazi" then
+  --               -- Type 'jk' normally when inside filetype 'Yourfiletype'
+  --               -- <c-v> is used to avoid mappings
+  --               return "<c-v>j<c-v>k"
+  --             end
+  --             return "<esc>"
+  --           end,
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
   {
     "mfussenegger/nvim-dap",
     config = function()
@@ -192,43 +233,6 @@ return {
       }
     end,
   },
-  -- {
-  --   "seblj/roslyn.nvim",
-  --   ft = "cs",
-  --   opts = {
-  --     args = {
-  --       "--logLevel=Information",
-  --       "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
-  --       "--razorSourceGenerator=" .. vim.fs.joinpath(
-  --         vim.fn.stdpath("data") --[[@as string]],
-  --         "mason",
-  --         "packages",
-  --         "roslyn",
-  --         "libexec",
-  --         "Microsoft.CodeAnalysis.Razor.Compiler.dll"
-  --       ),
-  --       "--razorDesignTimePath=" .. vim.fs.joinpath(
-  --         vim.fn.stdpath("data") --[[@as string]],
-  --         "mason",
-  --         "packages",
-  --         "rzls",
-  --         "libexec",
-  --         "Targets",
-  --         "Microsoft.NET.Sdk.Razor.DesignTime.targets"
-  --       ),
-  --     },
-  --     config = {
-  --       on_attach = require("lspattach"),
-  --       -- capabilities = capabilities,
-  --       handlers = require("rzls.roslyn_handlers"),
-  --     },
-  --     -- your configuration comes here; leave empty for default settings
-  --   },
-  -- },
-  -- {
-  --   "tris203/rzls.nvim",
-  --   opts = {},
-  -- },
   {
     "williamboman/mason.nvim",
     opts = {
@@ -266,51 +270,56 @@ return {
       --   },
       -- })
       require("roslyn").setup({
+        --- @type InternalRoslynNvimConfig
         filewatching = false,
-        args = {
-          "--logLevel=Information",
-          "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
-          "--razorSourceGenerator=" .. vim.fs.joinpath(
-            vim.fn.stdpath("data") --[[@as string]],
-            "mason",
-            "packages",
-            "roslyn",
-            "libexec",
-            "Microsoft.CodeAnalysis.Razor.Compiler.dll"
-          ),
-          "--razorDesignTimePath=" .. vim.fs.joinpath(
-            vim.fn.stdpath("data") --[[@as string]],
-            "mason",
-            "packages",
-            "rzls",
-            "libexec",
-            "Targets",
-            "Microsoft.NET.Sdk.Razor.DesignTime.targets"
-          ),
-        },
+        -- args = {
+        --   "--logLevel=Information",
+        --   "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+        --   "--razorSourceGenerator=" .. vim.fs.joinpath(
+        --     vim.fn.stdpath("data") --[[@as string]],
+        --     "mason",
+        --     "packages",
+        --     "roslyn",
+        --     "libexec",
+        --     "Microsoft.CodeAnalysis.Razor.Compiler.dll"
+        --   ),
+        --   "--razorDesignTimePath=" .. vim.fs.joinpath(
+        --     vim.fn.stdpath("data") --[[@as string]],
+        --     "mason",
+        --     "packages",
+        --     "rzls",
+        --     "libexec",
+        --     "Targets",
+        --     "Microsoft.NET.Sdk.Razor.DesignTime.targets"
+        --   ),
+        -- },
         config = {
           cmd = {},
           -- on_attach = require("lspattach"),
           capabilities = capabilities,
-          handlers = require("rzls.roslyn_handlers"),
+          -- handlers = require("rzls.roslyn_handlers"),
           settings = {
             ["csharp|inlay_hints"] = {
               csharp_enable_inlay_hints_for_implicit_object_creation = true,
-              csharp_enable_inlay_hints_for_implicit_variable_types = true,
+              csharp_enable_inlay_hints_for_implicit_variable_types = false,
 
-              csharp_enable_inlay_hints_for_lambda_parameter_types = true,
-              csharp_enable_inlay_hints_for_types = true,
-              dotnet_enable_inlay_hints_for_indexer_parameters = true,
-              dotnet_enable_inlay_hints_for_literal_parameters = true,
-              dotnet_enable_inlay_hints_for_object_creation_parameters = true,
-              dotnet_enable_inlay_hints_for_other_parameters = true,
-              dotnet_enable_inlay_hints_for_parameters = true,
+              -- csharp_enable_inlay_hints_for_lambda_parameter_types = false,
+              -- csharp_enable_inlay_hints_for_types = true,
+              -- dotnet_enable_inlay_hints_for_indexer_parameters = true,
+              -- dotnet_enable_inlay_hints_for_literal_parameters = true,
+              -- dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+              -- dotnet_enable_inlay_hints_for_other_parameters = true,
+              -- dotnet_enable_inlay_hints_for_parameters = true,
               dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
               dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
               dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
             },
             ["csharp|code_lens"] = {
               dotnet_enable_references_code_lens = true,
+            },
+            ["csharp|background_analysis"] = {
+              dotnet_analyzer_diagnostics_scope = "openFiles",
+              dotnet_compiler_diagnostics_scope = "fullSolution",
             },
           },
 
@@ -344,4 +353,94 @@ return {
       })
     end,
   },
+  {
+    "andrewferrier/wrapping.nvim",
+    opts = {
+      set_nvim_opt_defaults = false,
+    },
+    config = function(_, opts)
+      require("wrapping").setup(opts)
+      require("wrapping").soft_wrap_mode()
+    end,
+    -- config = function()
+    --     require("wrapping").setup()
+    -- end
+  },
+  {
+    "stevearc/conform.nvim",
+    optional = true,
+    opts = {
+      formatters_by_ft = {
+        cs = { "csharpier" },
+        python = { "isort", "black" },
+      },
+      formatters = {
+        csharpier = {
+          command = "dotnet-csharpier",
+          args = { "--write-stdout" },
+        },
+      },
+    },
+  },
+  {
+    "saghen/blink.cmp",
+    dependencies = {
+        'Kaiser-Yang/blink-cmp-avante',
+        -- ... Other dependencies
+    },
+    opts = {
+        sources = {
+            -- Add 'avante' to the list
+            default = { 'avante', 'lsp', 'path', 'snippets', 'buffer' },
+            providers = {
+                avante = {
+                    module = 'blink-cmp-avante',
+                    name = 'Avante',
+                    opts = {
+                        -- options for blink-cmp-avante
+                    }
+                }
+            },
+        }
+    }
+  },
+  -- {
+  --   "saghen/blink.compat",
+  --   optional = false, -- make optional so it's only enabled if any extras need it
+  --   opts = {},
+  --   version = not vim.g.lazyvim_blink_main and "*",
+  -- },
+  -- {
+  --   "saghen/blink.cmp",
+  --   opts = {
+  --     sources = {
+  --       compat = {
+  --         "avante_commands",
+  --         "avante_mentions",
+  --         "avante_files",
+  --       },
+  --       providers = {
+  --         avante_commands = {
+  --           name = "avante_commands",
+  --           module = "blink.compat.source",
+  --           score_offset = 90, -- show at a higher priority than lsp
+  --           opts = {},
+  --         },
+  --         avante_files = {
+  --           name = "avante_commands",
+  --           module = "blink.compat.source",
+  --           score_offset = 100, -- show at a higher priority than lsp
+  --           opts = {},
+  --         },
+  --         avante_mentions = {
+  --           name = "avante_mentions",
+  --           module = "blink.compat.source",
+  --           score_offset = 1000, -- show at a higher priority than lsp
+  --           opts = {},
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
+  { "nvim-neo-tree/neo-tree.nvim", enabled = false },
 }

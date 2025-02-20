@@ -15,8 +15,9 @@
     "lazyvim.plugins.extras.lang.vue",
     "lazyvim.plugins.extras.lsp.neoconf"
   ],
+  "install_version": 7,
   "news": {
     "NEWS.md": "10960"
   },
-  "version": 7
+  "version": 8
 }
