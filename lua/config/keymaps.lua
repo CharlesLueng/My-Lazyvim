@@ -1,7 +1,6 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
-local vscode = require "vscode"
 local map = vim.keymap.set
 
 
@@ -9,6 +8,7 @@ vim.keymap.set("i", "jk", "<ESC>", { silent = true })
 
 
 if vim.g.vscode then
+  local vscode = require "vscode"
   map("n", "<leader>ff", "<Cmd>lua require('vscode').call('workbench.action.quickOpen')<CR>", { desc = "Go to File" })
   map("n", "<leader>fb",
     function()
@@ -138,7 +138,7 @@ if vim.g.vscode then
   map({ "n", "v" }, "<leader>cn", "<cmd>lua require('vscode').action('notifications.clearAll')<CR>")
 
   -- harpoon keymaps
-  map({ "n", "v" }, "<leader>ha", "<cmd>lua require('vscode').action('vscode-harpoon.addEditor')<CR>")
+  map( "<leader>ha", "<cmd>lua require('vscode').action('vscode-harpoon.addEditor')<CR>")
   map({ "n", "v" }, "<leader>ho", "<cmd>lua require('vscode').action('vscode-harpoon.editorQuickPick')<CR>")
   map({ "n", "v" }, "<leader>he", "<cmd>lua require('vscode').action('vscode-harpoon.editEditors')<CR>")
   map({ "n", "v" }, "<leader>h1", "<cmd>lua require('vscode').action('vscode-harpoon.gotoEditor1')<CR>")
