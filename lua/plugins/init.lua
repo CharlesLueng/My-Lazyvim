@@ -20,11 +20,19 @@ return {
       },
     },
     config = function(_, opts)
-      require("onedarkpro").setup(opts)
-      require("onedarkpro").load()
+      -- require("onedarkpro").setup(opts)
+      -- require("onedarkpro").load()
 
       -- vim.cmd("colorschema onedark")
     end,
+  },
+  {
+  "folke/tokyonight.nvim",
+    lazy = true,
+    priority = 1000,
+    opts = {
+      style = "night"
+    },
   },
   -- {
   --   "williamboman/mason-lspconfig.nvim",
@@ -244,7 +252,7 @@ return {
   },
   {
     "seblj/roslyn.nvim",
-    -- ft = { "cs", "cshtml", "html" },
+    ft = { "cs", "cshtml", "html" },
     dependencies = {
       {
         "tris203/rzls.nvim",
@@ -270,6 +278,7 @@ return {
       --   },
       -- })
       require("roslyn").setup({
+        ---@type vim.lsp.ClientConfig
         --- @type InternalRoslynNvimConfig
         filewatching = false,
         -- args = {
@@ -294,7 +303,7 @@ return {
         --   ),
         -- },
         config = {
-          cmd = {},
+          -- cmd = {},
           -- on_attach = require("lspattach"),
           capabilities = capabilities,
           -- handlers = require("rzls.roslyn_handlers"),
@@ -401,8 +410,11 @@ return {
                     }
                 }
             },
+        },
+        fuzzy = {
+            implementation = 'lua',
         }
-    }
+    },
   },
   -- {
   --   "saghen/blink.compat",
